@@ -11,6 +11,8 @@ from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
 
 from Market import get_latest_close
+from db import save_articles
+
 ################
 # Logging
 logger = logging.getLogger(__name__)
@@ -32,10 +34,12 @@ class News(metaclass=ABCMeta):
 		logger.info("Reading Feed...")
 		sources = [Reuters]
 		for source in sources: 
+			articles = []
 			for article_url in source.get_article_urls():
 				article = source.get_article(article_url)
-				# TODO: have a batch save? Currently opens and closes db connection for each article 
 				article.save()
+				#articles.append(articles)
+			#save_articles(articles)
 
 	@abstractmethod
 	def soupify(url):
@@ -91,7 +95,7 @@ class Article(object):
 
 	# Preprocess the article text for future ml 
 	def filter_and_stem_text(self, text):
-		logger.debug("Removing Stop Words")
+		#logger.debug("Removing Stop Words")
 		filtered_sentences = []
 		for sentence in sent_tokenize(text):
 			filtered_sentence = []
@@ -100,13 +104,13 @@ class Article(object):
 					filtered_sentence.append(word)
 			filtered_sentences.append(filtered_sentence)
 
-		for sentence in filtered_sentences:
-			logger.debug("{}\n".format(sentence))
+		#for sentence in filtered_sentences:
+		#	logger.debug("{}\n".format(sentence))
 
 		####
 		# Stemming words in each sentence
 		###
-		logger.debug("Stemming sentences")
+		#logger.debug("Stemming sentences")
 		stemmed_sentences = []
 		for sentence in filtered_sentences:
 			stemmed_sentence = []
@@ -114,8 +118,8 @@ class Article(object):
 				stemmed_sentence.append(ps.stem(word))
 			stemmed_sentences.append(stemmed_sentence)
 
-		for sentence in stemmed_sentences:
-			logger.debug(sentence)
+		#for sentence in stemmed_sentences:
+			#logger.debug(sentence)
 
 		# Stemmed_sentences is a list of list of strs
 		# Convert stemmed_sentences into one string
@@ -124,7 +128,7 @@ class Article(object):
 			sentence_strings.append(' '.join(sentence))
 
 		full_sentence_string = ' '.join(sentence_strings)
-		logger.debug(full_sentence_string)
+		#logger.debug(full_sentence_string)
 
 		return full_sentence_string
 

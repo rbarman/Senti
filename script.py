@@ -1,5 +1,4 @@
-from News import News, Reuters
-from Market import get_latest_close
+from News import News
 import datetime
 import pytz
 import logging
@@ -12,7 +11,7 @@ eastern = pytz.timezone('US/Eastern')
 now = datetime.datetime.now(eastern)
 # Market Hours are 9:30 a.m. to 4:00 p.m. (Eastern Time)
 MARKET_START = now.replace(hour=9,minute=30,second=0,microsecond=0)
-MARKET_END = now.replace(hour=16,minute=00,second=0,microsecond=0)
+MARKET_END = now.replace(hour=20,minute=00,second=0,microsecond=0)
 
 def scheduled_function(sc):
 	# Currently loops through out day and accesses feed during market hours
@@ -34,13 +33,15 @@ def main():
 	logging.info("Current Time {:%H:%M}".format(now))
 	logging.info("Market Hours: {:%H:%M}-{:%H:%M}".format(MARKET_START,MARKET_END))
 
-	#s.enter(1, 1, scheduled_function, (s,))
-	#s.run()
+	s.enter(1, 1, scheduled_function, (s,))
+	s.run()
 
 	# Test Case
-	url = 'https://www.reuters.com/article/us-ukraine-russia-journalist/ukraine-and-russia-trade-accusations-over-killing-of-dissident-journalist-idUSKCN1IV1EO'
-	article = Reuters.get_article(url)
-	article.save()
+	#url = 'https://www.reuters.com/article/us-ukraine-russia-journalist/ukraine-and-russia-trade-accusations-over-killing-of-dissident-journalist-idUSKCN1IV1EO'
+	#article = Reuters.get_article(url)
+	#article.save()
+	# batch approach to avoid multiple db connections + market api calls
+	#save_articles([article])
 
 if __name__ == '__main__':
     main()
