@@ -10,10 +10,11 @@ from nltk.tokenize import sent_tokenize, word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
 
+from Market import get_latest_close
 ################
 # Logging
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 ################
 
 # NLTK
@@ -137,10 +138,14 @@ class Article(object):
 			conn = psycopg2.connect(conn_string)		
 
 			# upserting to avoid adding duplicate articles
-			sql = "INSERT INTO article(url,text) VALUES(%s,%s) ON CONFLICT DO NOTHING"
+			sql = "INSERT INTO article(url,text,market_price) VALUES(%s,%s,%s) ON CONFLICT DO NOTHING"
+
+			## TODO: move this out of Article.save() ?
+			current_market_price = get_latest_close('DJI')
+			## TEMP
 
 			cur = conn.cursor()
-			cur.execute(sql, (self.url,self.text,))
+			cur.execute(sql, (self.url,self.text,current_market_price,))
 
 			conn.commit()
 			cur.close()
