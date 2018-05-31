@@ -23,12 +23,6 @@ def scheduled_function(sc):
 	s.enter(DELAY, 1, scheduled_function, (sc,))
 
 def main():
-	#########################
-	# Log Setup
-	# TODO: move log setup to a log config
-	log_file = 'logs/{}.log'.format(now)
-	logging.basicConfig(filename=log_file, level=logging.DEBUG)
-	#########################
 
 	logging.info("Current Time {:%H:%M}".format(now))
 	logging.info("Market Hours: {:%H:%M}-{:%H:%M}".format(MARKET_START,MARKET_END))
@@ -43,5 +37,11 @@ def main():
 	# batch approach to avoid multiple db connections + market api calls
 	#save_articles([article])
 
+# move to a log config file / dictionary?
+def log_setup():
+	log_file = 'logs/{}.log'.format(now)
+	logging.basicConfig(filename=log_file, level=logging.INFO)
+ 
 if __name__ == '__main__':
-    main()
+	log_setup()
+	main()
