@@ -35,11 +35,11 @@ class News(metaclass=ABCMeta):
 		sources = [Reuters]
 		for source in sources: 
 			articles = []
+			# batch save the articles
 			for article_url in source.get_article_urls():
 				article = source.get_article(article_url)
-				article.save()
-				#articles.append(articles)
-			#save_articles(articles)
+				articles.append(article)
+			save_articles(articles)
 
 	@abstractmethod
 	def soupify(url):

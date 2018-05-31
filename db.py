@@ -28,24 +28,22 @@ def save_articles(articles):
 		market_price = get_latest_close('SPX')
 
 		# save all articles w/ current market price
-		print(type(articles))
 		for article in articles:
-			print(type(article))
-			# try:
-			# 	conn = psycopg2.connect(conn_string)		
+			try:
+				conn = psycopg2.connect(conn_string)		
 
-			# 	# upserting to avoid adding duplicate articles
-			# 	sql = "INSERT INTO article(url,text,market_price) VALUES(%s,%s,%s) ON CONFLICT DO NOTHING"
+				# upserting to avoid adding duplicate articles
+				sql = "INSERT INTO article(url,text,market_price) VALUES(%s,%s,%s) ON CONFLICT DO NOTHING"
 
-			# 	cur = conn.cursor()
-			# 	cur.execute(sql, (article.url,article.text,market_price,))
+				cur = conn.cursor()
+				cur.execute(sql, (article.url,article.text,market_price,))
 
-			# 	conn.commit()
-			# 	cur.close()
-			# except (Exception, psycopg2.DatabaseError) as error:
-			# 	logger.debug(error)
-			# else:
-			# 	logger.info("Successfully entered into db")
+				conn.commit()
+				cur.close()
+			except (Exception, psycopg2.DatabaseError) as error:
+				logger.debug(error)
+			else:
+				logger.info("Successfully entered into db")
 
 	finally:
 		if conn is not None:
