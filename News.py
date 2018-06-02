@@ -3,20 +3,18 @@ import requests
 from abc import ABCMeta, abstractmethod
 import logging
 import psycopg2
-from config import postgres_config as p
 
 # NLTK used in Article for prepocessing article text
 from nltk.tokenize import sent_tokenize, word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
 
-from Market import get_latest_close
 from db import save_articles
 
 ################
 # Logging
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 ################
 
 # NLTK
@@ -131,35 +129,6 @@ class Article(object):
 		#logger.debug(full_sentence_string)
 
 		return full_sentence_string
-
-	# saves Article to db
-	def save(self):
-		logger.debug("in save()")
-		conn_string = "host='{}' dbname='{}' user='{}' password='{}'".format(p.get('host'),p.get('dbname'),p.get('user'),p.get('password'))
-		logger.debug(conn_string)
-		conn = None
-		try:
-			conn = psycopg2.connect(conn_string)		
-
-			# upserting to avoid adding duplicate articles
-			sql = "INSERT INTO article(url,text,market_price) VALUES(%s,%s,%s) ON CONFLICT DO NOTHING"
-
-			## TODO: move this out of Article.save() ?
-			current_market_price = get_latest_close('DJI')
-			## TEMP
-
-			cur = conn.cursor()
-			cur.execute(sql, (self.url,self.text,current_market_price,))
-
-			conn.commit()
-			cur.close()
-		except (Exception, psycopg2.DatabaseError) as error:
-			logger.debug(error)
-		else:
-			logger.info("Successfully entered into db")
-		finally:
-			if conn is not None:
-				conn.close()
 
 	def save_to_file(self,directory):
 		try:

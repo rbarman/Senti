@@ -4,10 +4,8 @@ import psycopg2
 ################
 # Logging
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 ################
-from Market import get_latest_close
-
 
 def save_articles(articles):
 
@@ -24,25 +22,23 @@ def save_articles(articles):
 	else:
 		logger.debug("Successfully connected to db")
 
-		# get current market price
-		market_price = get_latest_close('SPX')
-
 		# save all articles w/ current market price
 		for article in articles:
 			try:
 				conn = psycopg2.connect(conn_string)		
 
 				# upserting to avoid adding duplicate articles
-				sql = "INSERT INTO article(url,text,market_price) VALUES(%s,%s,%s) ON CONFLICT DO NOTHING"
+				sql = "INSERT INTO article(url,text) VALUES(%s,%s) ON CONFLICT DO NOTHING"
 
 				cur = conn.cursor()
-				cur.execute(sql, (article.url,article.text,market_price,))
+				cur.execute(sql, (article.url,article.text,))
 
 				conn.commit()
 				cur.close()
 			except (Exception, psycopg2.DatabaseError) as error:
 				logger.debug(error)
 			else:
+				# Potentially misleading because we may have upserted
 				logger.info("Successfully entered into db")
 
 	finally:

@@ -1,4 +1,4 @@
-from News import News, Reuters
+from News import News
 from db import save_articles
 import datetime
 import pytz
@@ -6,7 +6,7 @@ import logging
 import sched, time
 s = sched.scheduler(time.time, time.sleep)
 
-DELAY = 60 * 5
+DELAY = 10 * 5
 
 eastern = pytz.timezone('US/Eastern')
 now = datetime.datetime.now(eastern)
@@ -28,11 +28,8 @@ def main():
 	logging.info("Current Time {:%H:%M}".format(now))
 	logging.info("Market Hours: {:%H:%M}-{:%H:%M}".format(MARKET_START,MARKET_END))
 
-	#s.enter(1, 1, scheduled_function, (s,))
-	#s.run()
-
-	# Test Case
-	News.read_and_save_feed()
+	s.enter(1, 1, scheduled_function, (s,))
+	s.run()
 
 # move to a log config file / dictionary?
 def log_setup():
