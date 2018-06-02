@@ -1,12 +1,12 @@
-from News import News, Reuters
-from Market import get_latest_close
+from News import News
+from db import save_articles
 import datetime
 import pytz
 import logging
 import sched, time
 s = sched.scheduler(time.time, time.sleep)
 
-DELAY = 60 * 5
+DELAY = 10 * 5
 
 eastern = pytz.timezone('US/Eastern')
 now = datetime.datetime.now(eastern)
@@ -28,16 +28,12 @@ def main():
 	logging.info("Current Time {:%H:%M}".format(now))
 	logging.info("Market Hours: {:%H:%M}-{:%H:%M}".format(MARKET_START,MARKET_END))
 
-	#s.enter(1, 1, scheduled_function, (s,))
-	#s.run()
-
-	# Test Case
-	url = 'https://www.reuters.com/article/us-ukraine-russia-journalist/ukraine-and-russia-trade-accusations-over-killing-of-dissident-journalist-idUSKCN1IV1EO'
-	article = Reuters.get_article(url)
-	article.save()
+	s.enter(1, 1, scheduled_function, (s,))
+	s.run()
 
 # move to a log config file / dictionary?
 def log_setup():
+	# TODO: add a stream handler?
 	log_file = 'logs/{}.log'.format(now)
 	logging.basicConfig(filename=log_file, level=logging.INFO)
  

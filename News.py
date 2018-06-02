@@ -3,18 +3,18 @@ import requests
 from abc import ABCMeta, abstractmethod
 import logging
 import psycopg2
-from config import postgres_config as p
 
 # NLTK used in Article for prepocessing article text
 from nltk.tokenize import sent_tokenize, word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
 
-from Market import get_latest_close
+from db import save_articles
+
 ################
 # Logging
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 ################
 
 # NLTK
@@ -32,10 +32,12 @@ class News(metaclass=ABCMeta):
 		logger.info("Reading Feed...")
 		sources = [Reuters]
 		for source in sources: 
+			articles = []
+			# batch save the articles
 			for article_url in source.get_article_urls():
 				article = source.get_article(article_url)
-				# TODO: have a batch save? Currently opens and closes db connection for each article 
-				article.save()
+				articles.append(article)
+			save_articles(articles)
 
 	@abstractmethod
 	def soupify(url):
@@ -91,7 +93,7 @@ class Article(object):
 
 	# Preprocess the article text for future ml 
 	def filter_and_stem_text(self, text):
-		logger.debug("Removing Stop Words")
+		#logger.debug("Removing Stop Words")
 		filtered_sentences = []
 		for sentence in sent_tokenize(text):
 			filtered_sentence = []
@@ -100,13 +102,13 @@ class Article(object):
 					filtered_sentence.append(word)
 			filtered_sentences.append(filtered_sentence)
 
-		for sentence in filtered_sentences:
-			logger.debug("{}\n".format(sentence))
+		#for sentence in filtered_sentences:
+		#	logger.debug("{}\n".format(sentence))
 
 		####
 		# Stemming words in each sentence
 		###
-		logger.debug("Stemming sentences")
+		#logger.debug("Stemming sentences")
 		stemmed_sentences = []
 		for sentence in filtered_sentences:
 			stemmed_sentence = []
@@ -114,8 +116,8 @@ class Article(object):
 				stemmed_sentence.append(ps.stem(word))
 			stemmed_sentences.append(stemmed_sentence)
 
-		for sentence in stemmed_sentences:
-			logger.debug(sentence)
+		#for sentence in stemmed_sentences:
+			#logger.debug(sentence)
 
 		# Stemmed_sentences is a list of list of strs
 		# Convert stemmed_sentences into one string
@@ -124,38 +126,9 @@ class Article(object):
 			sentence_strings.append(' '.join(sentence))
 
 		full_sentence_string = ' '.join(sentence_strings)
-		logger.debug(full_sentence_string)
+		#logger.debug(full_sentence_string)
 
 		return full_sentence_string
-
-	# saves Article to db
-	def save(self):
-		logger.debug("in save()")
-		conn_string = "host='{}' dbname='{}' user='{}' password='{}'".format(p.get('host'),p.get('dbname'),p.get('user'),p.get('password'))
-		logger.debug(conn_string)
-		conn = None
-		try:
-			conn = psycopg2.connect(conn_string)		
-
-			# upserting to avoid adding duplicate articles
-			sql = "INSERT INTO article(url,text,market_price) VALUES(%s,%s,%s) ON CONFLICT DO NOTHING"
-
-			## TODO: move this out of Article.save() ?
-			current_market_price = get_latest_close('DJI')
-			## TEMP
-
-			cur = conn.cursor()
-			cur.execute(sql, (self.url,self.text,current_market_price,))
-
-			conn.commit()
-			cur.close()
-		except (Exception, psycopg2.DatabaseError) as error:
-			logger.debug(error)
-		else:
-			logger.info("Successfully entered into db")
-		finally:
-			if conn is not None:
-				conn.close()
 
 	def save_to_file(self,directory):
 		try:
