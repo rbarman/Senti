@@ -1,13 +1,14 @@
 from News import News
-from db import save_articles
 import datetime
 import pytz
 import logging
 import sched, time
+import sys, getopt
+from test import test_main
 s = sched.scheduler(time.time, time.sleep)
 
+# Better place to put globals?
 DELAY = 10 * 5
-
 eastern = pytz.timezone('US/Eastern')
 now = datetime.datetime.now(eastern)
 # Market Hours are 9:30 a.m. to 4:00 p.m. (Eastern Time)
@@ -23,13 +24,31 @@ def scheduled_function(sc):
 		logging.info("Market is currently closed")
 	s.enter(DELAY, 1, scheduled_function, (sc,))
 
-def main():
+def main(argv):
 
 	logging.info("Current Time {:%H:%M}".format(now))
 	logging.info("Market Hours: {:%H:%M}-{:%H:%M}".format(MARKET_START,MARKET_END))
 
-	s.enter(1, 1, scheduled_function, (s,))
-	s.run()
+	# command line arguments 
+		# -t for test, -p or none for production
+	try:
+		opts, args = getopt.getopt(argv,"pt")
+	except getopt.GetoptError:
+		logging.exception("error getting options")
+		sys.exit(2)
+
+	for opt, arg in opts:
+
+		if opt == '-t':
+			logging.info("Test")
+			test_main() # main wrapper func for tests
+			sys.exit(2)
+
+		else: # could also use -p tag
+			logging.info('Production')
+			s.enter(1, 1, scheduled_function, (s,))
+			s.run()
+			sys.exit(2)
 
 # move to a log config file / dictionary?
 def log_setup():
@@ -39,4 +58,4 @@ def log_setup():
  
 if __name__ == '__main__':
 	log_setup()
-	main()
+	main(sys.argv[1:]) # accept command line arguments
