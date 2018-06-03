@@ -1,4 +1,5 @@
 from config import postgres_config as p
+from Market import get_minute_close
 import logging
 import psycopg2
 ################
@@ -79,6 +80,11 @@ def set_market_price():
 		# DEBUG:db:timestamp is a <class 'datetime.datetime'>
 
 		# Now need to get price closest to time
+		for row in rows:
+			pass
+
+		get_minute_close('DJI',row[1])
+
 
 	finally:
 		if conn is not None:
