@@ -62,36 +62,37 @@ def set_market_price():
 			logger.debug(error)
 	else:
 		logger.debug("Successfully connected to db")
-		# 1. Get url and timestamps 
+		# get observations that we need to update prices for 
 		sql = """ 
 			select url, article_read_date 
 			from article
-			where market_price is null;
+			where current_close is null;
 		"""
 		cur = conn.cursor()
 		cur.execute(sql)
 		rows = cur.fetchall()
 		
-		close_prices = get_minute_close_batch('DJI',rows)
-		# need to update the market price market_price column
+		# get prices (close,5min_close, etc)
+		prices = get_minute_close_batch('DJI',rows)
 
-		# for each row, update the market_price column 
-			# rows and close_prices should always be same length
-		for row, close in zip(rows, close_prices):
+		# for each row, update the price columns in db
+			# rows and all price cols should always be same length
+		# TODO: there has to be a much cleaner way of doing this.
+		for row, close,close_5min,close_30min,close_1hr in zip(rows, prices['close_prices'],prices['future_close_5mins'],prices['future_close_30mins'],prices['future_close_1hrs']):
 			try:
 				sql = """ 
 					UPDATE article
-                	SET market_price = %s
-                	WHERE url = %s
+                	SET current_close = %s, future_close_5min = %s, future_close_30min = %s, future_close_1hr = %s
+                	WHERE url = %s;
                 """
 				cur = conn.cursor()
-				cur.execute(sql, (close,row[0],))
+				cur.execute(sql, (close,close_5min,close_30min,close_1hr,row[0],))
 				conn.commit()
 				cur.close()
 			except (Exception, psycopg2.DatabaseError) as error:
 				logger.debug(error)
 			else:
-				logger.info("Successfully updated market_price")
+				logger.info("Successfully updated prices")
 
 	finally:
 		if conn is not None:

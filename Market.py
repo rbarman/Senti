@@ -3,6 +3,7 @@ from config import alphavantage
 	# # https://stackoverflow.com/questions/10040954/alternative-to-google-finance-api
 from alpha_vantage.timeseries import TimeSeries
 import logging
+from datetime import timedelta
 
 ################
 # Logging
@@ -30,28 +31,53 @@ def get_minute_close_batch(symbol,rows):
 	data, meta_data = ts.get_intraday(symbol=symbol,interval='1min', outputsize='full')
 
 	close_prices = []
+	future_close_5mins = []
+	future_close_30mins = []
+	future_close_1hrs = []
 
 	for row in rows:
 		time = row[1]
-		new_dt = time.replace(second = 0)
-		new_str_time = new_dt.strftime('%Y-%m-%d %H:%M:%S')
+		close = get_minute_close_(symbol,time,data)
+		# use time deltas to get future times
+		future_close_5min = get_minute_close_(symbol,time + timedelta(minutes = 5),data)
+		future_close_30min = get_minute_close_(symbol,time + timedelta(minutes = 30),data)
+		future_close_1hr = get_minute_close_(symbol,time + timedelta(hours = 1),data)
 
-		obs = None
-		try:
-			obs = data.loc[new_str_time]
-		# KeyError when data does not contain this date
-		except (Exception, KeyError) as error:
-			logger.debug(error)
-			# TODO: Better value to add? 
-				# Eventually would have to remove this row from db table if the article time is outside of market hours?
-			close_prices.append(-1)
-		else:
-			close = obs['4. close']
-			#logging.info("The close at {} is {}".format(new_str_time,close))
-			close_prices.append(close)
+		# add
+		close_prices.append(close)
+		future_close_5mins.append(future_close_5min)
+		future_close_30mins.append(future_close_30min)
+		future_close_1hrs.append(future_close_1hr)
 
-	logger.debug("Returning close_prices")
-	return close_prices
+	logger.debug("Returning prices dict")
+	# return dictionary w/ each prices
+	prices = {
+		'close_prices': close_prices, 
+		'future_close_5mins': future_close_5mins,
+		'future_close_30mins': future_close_30mins,
+		'future_close_1hrs': future_close_1hrs
+	}
+	return prices
+
+def get_minute_close_(symbol,time,df):
+	# search for the time in df to get close
+	new_dt = time.replace(second = 0)
+	new_str_time = new_dt.strftime('%Y-%m-%d %H:%M:%S')
+
+	obs = None
+	try:
+		obs = df.loc[new_str_time]
+	# KeyError when df does not contain this date
+	except (Exception, KeyError) as error:
+		logger.debug(error)
+		# TODO: Better value to add? 
+			# Eventually would have to remove this row from db table if the article time is outside of market hours?
+		return -1
+	else:
+		close = obs['4. close']
+		#logging.info("The close at {} is {}".format(new_str_time,close))
+		return close;
+
 
 #TODO: accept an array of times to avoid
 	# ValueError: Please consider optimizing your API call frequency.
