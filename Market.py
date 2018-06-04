@@ -42,7 +42,7 @@ def get_minute_close_batch(symbol,rows):
 		# https://stackoverflow.com/questions/6205442/how-to-find-datetime-10-mins-after-current-time#6205529
 		future_close_5min = get_minute_close_(symbol,time + timedelta(minutes = 5),data)
 		future_close_30min = get_minute_close_(symbol,time + timedelta(minutes = 30),data)
-		future_close_1hr = get_minute_close_(symbol,time + timedelta(hour = 1),data)
+		future_close_1hr = get_minute_close_(symbol,time + timedelta(hours = 1),data)
 
 		# add
 		close_prices.append(close)

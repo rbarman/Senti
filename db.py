@@ -83,8 +83,8 @@ def set_market_price():
 			try:
 				sql = """ 
 					UPDATE article
-                	SET current_close = %s future_close_5min = %s future_close_30min = %s future_close_1hr = %s
-                	WHERE url = %s
+                	SET current_close = %s, future_close_5min = %s, future_close_30min = %s, future_close_1hr = %s
+                	WHERE url = %s;
                 """
 				cur = conn.cursor()
 				cur.execute(sql, (close,close_5min,close_30min,close_1hr,row[0],))
