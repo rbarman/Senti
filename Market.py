@@ -3,6 +3,7 @@ from config import alphavantage
 	# # https://stackoverflow.com/questions/10040954/alternative-to-google-finance-api
 from alpha_vantage.timeseries import TimeSeries
 import logging
+from datetime import timedelta
 
 ################
 # Logging
@@ -30,13 +31,34 @@ def get_minute_close_batch(symbol,rows):
 	data, meta_data = ts.get_intraday(symbol=symbol,interval='1min', outputsize='full')
 
 	close_prices = []
+	future_close_5mins = []
+	future_close_30mins = []
+	future_close_1hrs = []
 
 	for row in rows:
 		time = row[1]
 		close = get_minute_close_(symbol,time,data)
-		
+		# TEST
+		# https://stackoverflow.com/questions/6205442/how-to-find-datetime-10-mins-after-current-time#6205529
+		future_close_5min = get_minute_close_(symbol,time + timedelta(minutes = 5),data)
+		future_close_30min = get_minute_close_(symbol,time + timedelta(minutes = 30),data)
+		future_close_1hr = get_minute_close_(symbol,time + timedelta(hour = 1),data)
+
+		# add
+		close_prices.append(close)
+		future_close_5mins.append(future_close_5min)
+		future_close_30mins.append(future_close_30min)
+		future_close_1hrs.append(future_close_1hr)
+
 	logger.debug("Returning close_prices")
-	return close_prices
+	# return dictionary w/ each prices
+	prices = {
+		'close_prices': close_prices, 
+		'future_close_5mins': future_close_5mins,
+		'future_close_30mins': future_close_30mins,
+		'future_close_1hrs': future_close_1hrs
+	}
+	return prices
 
 def get_minute_close_(symbol,time,df):
 	# search for the time in df to get close

@@ -72,12 +72,13 @@ def set_market_price():
 		cur.execute(sql)
 		rows = cur.fetchall()
 		
-		close_prices = get_minute_close_batch('DJI',rows)
+		prices = get_minute_close_batch('DJI',rows)
 		# need to update the market price current_close column
 
 		# for each row, update the current_close column 
 			# rows and close_prices should always be same length
-		for row, close in zip(rows, close_prices):
+		# TODO: add in the future close prices as well
+		for row, close in zip(rows, prices['close_prices']):
 			try:
 				sql = """ 
 					UPDATE article
