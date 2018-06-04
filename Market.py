@@ -27,7 +27,7 @@ def get_minute_close_batch(symbol,rows):
 	logger.debug("get_minute_close_batch")
 
 	ts = TimeSeries(key=alphavantage.get('API_KEY'),output_format='pandas')
-	data, meta_data = ts.get_intraday(symbol=symbol,interval='1min')
+	data, meta_data = ts.get_intraday(symbol=symbol,interval='1min', outputsize='full')
 
 	close_prices = []
 
@@ -58,7 +58,7 @@ def get_minute_close_batch(symbol,rows):
 def get_minute_close(symbol,time):
 	logger.debug(time)
 	ts = TimeSeries(key=alphavantage.get('API_KEY'),output_format='pandas')
-	data, meta_data = ts.get_intraday(symbol=symbol,interval='1min')
+	data, meta_data = ts.get_intraday(symbol=symbol,interval='1min', outputsize='full')
 
 	# the returned data will be a dataframe 
 		# index is a time string with format: '2018-06-01 14:22:00'
