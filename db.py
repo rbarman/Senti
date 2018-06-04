@@ -1,5 +1,6 @@
 from config import postgres_config as p
 from Market import get_minute_close
+from Market import get_minute_close_batch
 import logging
 import psycopg2
 ################
@@ -29,6 +30,7 @@ def save_articles(articles):
 		# save all articles w/ current market price
 		for article in articles:
 			try:
+				# TODO: do I need to reconnect here?
 				conn = psycopg2.connect(conn_string)		
 
 				# upserting to avoid adding duplicate articles
@@ -48,7 +50,6 @@ def save_articles(articles):
 	finally:
 		if conn is not None:
 			conn.close()
-
 
 def set_market_price():
 	logger.debug("in set_market_price")
@@ -74,12 +75,26 @@ def set_market_price():
 		cur.execute(sql)
 		rows = cur.fetchall()
 		
-		# Now need to get price closest to time
-		
-		for row in rows:
-			market_price = get_minute_close('DJI',row[1])
-		
+		close_prices = get_minute_close_batch('DJI',rows)
 		# need to update the market price market_price column
+
+		# for each row, update the market_price column 
+			# rows and close_prices should always be same length
+		for row, close in zip(rows, close_prices):
+			try:
+				sql = """ 
+					UPDATE article
+                	SET market_price = %s
+                	WHERE url = %s
+                """
+				cur = conn.cursor()
+				cur.execute(sql, (close,row[0],))
+				conn.commit()
+				cur.close()
+			except (Exception, psycopg2.DatabaseError) as error:
+				logger.debug(error)
+			else:
+				logger.info("Successfully updated market_price")
 
 	finally:
 		if conn is not None:
