@@ -30,9 +30,6 @@ def save_articles(articles):
 		# save all articles w/ current market price
 		for article in articles:
 			try:
-				# TODO: do I need to reconnect here?
-				conn = psycopg2.connect(conn_string)		
-
 				# upserting to avoid adding duplicate articles
 				sql = "INSERT INTO article(url,text) VALUES(%s,%s) ON CONFLICT DO NOTHING"
 
