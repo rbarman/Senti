@@ -20,21 +20,37 @@ def get_latest_close(symbol):
 	logger.info("current price is {}".format(close))
 	return close
 
+#TODO: accept an array of times to avoid
+	# ValueError: Please consider optimizing your API call frequency.
 def get_minute_close(symbol,time):
 	logger.debug(time)
 	ts = TimeSeries(key=alphavantage.get('API_KEY'),output_format='pandas')
 	data, meta_data = ts.get_intraday(symbol=symbol,interval='1min')
-	latest = data.head(1)
-	logger.debug(latest)
-	#logger.debug("an article time:  {} is a : {}".format(time,type(time)))
-	logger.debug(data.index.values)
-	logger.debug(type(data.index.values))
-	logger.debug(type(data.index.values[1]))
-	#DEBUG:Market:<class 'numpy.ndarray'>
-	#DEBUG:Market:<class 'str'>
-	# the time index returned is a str...
-	# will need to change time format to match for str comparison...
-	# or use datetime for direct comparison?
+
+	# the returned data will be a dataframe 
+		# index is a time string with format: '2018-06-01 14:22:00'
+		# columns are open, close, etc
+
+	# convert the datetime object to a string that matches the index format
+		# example: 
+	new_dt = time.replace(second = 0)
+	new_str_time = new_dt.strftime('%Y-%m-%d %H:%M:%S')
+
+	# use this string to search the data by index
+	obs = None
+	try:
+		obs = data.loc[new_str_time]
+	# KeyError when data does not contain this date
+	except (Exception, KeyError) as error:
+		logger.debug(error)
+		return None 
+	else:
+		close = obs['4. close']
+		logging.info("The close at {} is {}".format(new_str_time,close))
+		return close
+
+
+
 
 
 

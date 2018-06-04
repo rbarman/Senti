@@ -74,17 +74,12 @@ def set_market_price():
 		cur.execute(sql)
 		rows = cur.fetchall()
 		
-		# DEBUG:db:rows is a <class 'list'>
-		# DEBUG:db:a row is a <class 'tuple'>
-		# DEBUG:db:url is a <class 'str'>
-		# DEBUG:db:timestamp is a <class 'datetime.datetime'>
-
 		# Now need to get price closest to time
+		
 		for row in rows:
-			pass
-
-		get_minute_close('DJI',row[1])
-
+			market_price = get_minute_close('DJI',row[1])
+		
+		# need to update the market price market_price column
 
 	finally:
 		if conn is not None:
