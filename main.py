@@ -1,4 +1,5 @@
 from News import News
+from db import set_market_price
 import datetime
 import pytz
 import logging
@@ -32,7 +33,7 @@ def main(argv):
 	# command line arguments 
 		# -t for test, -p or none for production
 	try:
-		opts, args = getopt.getopt(argv,"pt")
+		opts, args = getopt.getopt(argv,"ptm")
 	except getopt.GetoptError:
 		logging.exception("error getting options")
 		sys.exit(2)
@@ -42,6 +43,11 @@ def main(argv):
 		if opt == '-t':
 			logging.info("Test")
 			test_main() # main wrapper func for tests
+			sys.exit(2)
+
+		elif opt == '-m':
+			logging.info("Setting Market prices")
+			set_market_price()
 			sys.exit(2)
 
 		else: # could also use -p tag
