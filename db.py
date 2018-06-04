@@ -66,22 +66,22 @@ def set_market_price():
 		sql = """ 
 			select url, article_read_date 
 			from article
-			where market_price is null;
+			where current_close is null;
 		"""
 		cur = conn.cursor()
 		cur.execute(sql)
 		rows = cur.fetchall()
 		
 		close_prices = get_minute_close_batch('DJI',rows)
-		# need to update the market price market_price column
+		# need to update the market price current_close column
 
-		# for each row, update the market_price column 
+		# for each row, update the current_close column 
 			# rows and close_prices should always be same length
 		for row, close in zip(rows, close_prices):
 			try:
 				sql = """ 
 					UPDATE article
-                	SET market_price = %s
+                	SET current_close = %s
                 	WHERE url = %s
                 """
 				cur = conn.cursor()
@@ -91,7 +91,7 @@ def set_market_price():
 			except (Exception, psycopg2.DatabaseError) as error:
 				logger.debug(error)
 			else:
-				logger.info("Successfully updated market_price")
+				logger.info("Successfully updated current_close")
 
 	finally:
 		if conn is not None:

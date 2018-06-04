@@ -33,25 +33,30 @@ def get_minute_close_batch(symbol,rows):
 
 	for row in rows:
 		time = row[1]
-		new_dt = time.replace(second = 0)
-		new_str_time = new_dt.strftime('%Y-%m-%d %H:%M:%S')
-
-		obs = None
-		try:
-			obs = data.loc[new_str_time]
-		# KeyError when data does not contain this date
-		except (Exception, KeyError) as error:
-			logger.debug(error)
-			# TODO: Better value to add? 
-				# Eventually would have to remove this row from db table if the article time is outside of market hours?
-			close_prices.append(-1)
-		else:
-			close = obs['4. close']
-			#logging.info("The close at {} is {}".format(new_str_time,close))
-			close_prices.append(close)
-
+		close = get_minute_close_(symbol,time,data)
+		
 	logger.debug("Returning close_prices")
 	return close_prices
+
+def get_minute_close_(symbol,time,df):
+	# search for the time in df to get close
+	new_dt = time.replace(second = 0)
+	new_str_time = new_dt.strftime('%Y-%m-%d %H:%M:%S')
+
+	obs = None
+	try:
+		obs = df.loc[new_str_time]
+	# KeyError when df does not contain this date
+	except (Exception, KeyError) as error:
+		logger.debug(error)
+		# TODO: Better value to add? 
+			# Eventually would have to remove this row from db table if the article time is outside of market hours?
+		return -1
+	else:
+		close = obs['4. close']
+		#logging.info("The close at {} is {}".format(new_str_time,close))
+		return close;
+
 
 #TODO: accept an array of times to avoid
 	# ValueError: Please consider optimizing your API call frequency.
