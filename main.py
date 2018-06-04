@@ -9,7 +9,7 @@ from test import test_main
 s = sched.scheduler(time.time, time.sleep)
 
 # Better place to put globals?
-DELAY = 10 * 5
+DELAY = 60 * 5
 eastern = pytz.timezone('US/Eastern')
 now = datetime.datetime.now(eastern)
 # Market Hours are 9:30 a.m. to 4:00 p.m. (Eastern Time)
