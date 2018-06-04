@@ -77,22 +77,23 @@ def set_market_price():
 
 		# for each row, update the current_close column 
 			# rows and close_prices should always be same length
-		# TODO: add in the future close prices as well
-		for row, close in zip(rows, prices['close_prices']):
+		
+		# TODO: there has to be a much cleaner way of doing this.
+		for row, close,close_5min,close_30min,close_1hr in zip(rows, prices['close_prices'],prices['future_close_5mins'],prices['future_close_30mins'],prices['future_close_1hrs']):
 			try:
 				sql = """ 
 					UPDATE article
-                	SET current_close = %s
+                	SET current_close = %s future_close_5min = %s future_close_30min = %s future_close_1hr = %s
                 	WHERE url = %s
                 """
 				cur = conn.cursor()
-				cur.execute(sql, (close,row[0],))
+				cur.execute(sql, (close,close_5min,close_30min,close_1hr,row[0],))
 				conn.commit()
 				cur.close()
 			except (Exception, psycopg2.DatabaseError) as error:
 				logger.debug(error)
 			else:
-				logger.info("Successfully updated current_close")
+				logger.info("Successfully updated prices")
 
 	finally:
 		if conn is not None:
